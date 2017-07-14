@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import datetime
 import logging
+import uuid
 
 from django.conf import settings
 from django.contrib.auth import login
@@ -177,7 +178,11 @@ class RequestToken(models.Model):
         if self.id is not None:
             claims['jti'] = self.id
         if self.user is not None:
-            claims['aud'] = self.user.id
+            # Fixes issue #18
+            if type(self.user.id) == uuid.UUID:
+                claims['aud'] = str(self.user.id)
+            else:
+                claims['aud'] = self.user.id
         if self.expiration_time is not None:
             claims['exp'] = to_seconds(self.expiration_time)
         if self.issued_at is not None:
